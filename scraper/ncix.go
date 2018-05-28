@@ -15,6 +15,7 @@ import (
 )
 
 type ncix struct {
+	name       string
 	url        string
 	categories []*Category
 	products   []*Product
@@ -26,6 +27,7 @@ func NewNCIXScrapper() Scraper {
 		// every scrapper follow different algorithm, therefore do not needed to pass as param
 		url:      "https://www.ncix.com/categories/",
 		currency: "CAD",
+		name:     "NCIX",
 	}
 }
 
@@ -38,6 +40,12 @@ func (n *ncix) Products() []*Product {
 }
 
 func (n *ncix) Scrape() error {
+	// create dir for downloaded data
+	if err := CreateDirIfNotExist(n.name); err != nil {
+		return err
+	}
+
+	// start scraping
 	n.fetchCategories(n.url)
 	n.fetchProducts()
 	return nil
@@ -77,7 +85,7 @@ func (n *ncix) fetchProducts() error {
 		// Request the HTML page.
 		res, err := http.Get(c.href)
 		if err != nil {
-			log.Fatal(err)
+			logrus.Fatal(err)
 		}
 		defer res.Body.Close()
 		if res.StatusCode != 200 {
@@ -93,8 +101,13 @@ func (n *ncix) fetchProducts() error {
 		// find products
 		doc.Find("span.listing a").Each(func(i int, s *goquery.Selection) {
 			p := &Product{}
-			// For each item found, get the band and title
+
+			// find href and name
 			href, ok := s.Attr("href")
+			if ok {
+				p.currency, p.name, p.href = s.Text(), n.currency, href
+				n.products = append(n.products, p)
+			}
 
 			// find image
 			s.Parent().Parent().Prev().Find("img").Each(func(j int, js *goquery.Selection) {
@@ -106,6 +119,7 @@ func (n *ncix) fetchProducts() error {
 
 			// find price
 			s.Parent().Parent().Next().Next().Find("strong").Each(func(j int, js *goquery.Selection) {
+				// price format looks like $1,200.50
 				priceRaw := strings.Replace(strings.TrimLeft(js.Text(), "$"), ",", "", -1)
 				priceFloat, err := strconv.ParseFloat(priceRaw, 64)
 				if err != nil {
@@ -114,10 +128,7 @@ func (n *ncix) fetchProducts() error {
 					p.price = priceFloat
 				}
 			})
-			if ok {
-				p.currency, p.name, p.href = s.Text(), n.currency, href
-				n.products = append(n.products, p)
-			}
+
 		})
 		break
 	}
