@@ -3,9 +3,18 @@ package scraper
 type Scraper interface {
 	Scrape() error
 	Categories() []Category
+	Products() []Product
 }
 
 type Category struct {
-	text string
+	name string
 	href string
+}
+
+type Product struct {
+	name         string
+	price        float64
+	currency     string
+	href         string
+	categoryHref string
 }
