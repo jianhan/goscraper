@@ -2,8 +2,8 @@ package scraper
 
 type Scraper interface {
 	Scrape() error
-	Categories() []Category
-	Products() []Product
+	Categories() []*Category
+	Products() []*Product
 }
 
 type Category struct {

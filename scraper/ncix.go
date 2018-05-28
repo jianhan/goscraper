@@ -6,13 +6,18 @@ import (
 
 	"fmt"
 
+	"strings"
+
+	"strconv"
+
 	"github.com/PuerkitoBio/goquery"
+	"github.com/sirupsen/logrus"
 )
 
 type ncix struct {
 	url        string
-	categories []Category
-	products   []Product
+	categories []*Category
+	products   []*Product
 	currency   string
 }
 
@@ -24,11 +29,11 @@ func NewNCIXScrapper() Scraper {
 	}
 }
 
-func (n *ncix) Categories() []Category {
+func (n *ncix) Categories() []*Category {
 	return n.categories
 }
 
-func (n *ncix) Products() []Product {
+func (n *ncix) Products() []*Product {
 	return n.products
 }
 
@@ -60,7 +65,7 @@ func (n *ncix) fetchCategories(url string) error {
 		// For each item found, get the band and title
 		href, ok := s.Attr("href")
 		if ok {
-			n.categories = append(n.categories, Category{name: s.Text(), href: href})
+			n.categories = append(n.categories, &Category{name: s.Text(), href: href})
 		}
 	})
 
@@ -87,10 +92,31 @@ func (n *ncix) fetchProducts() error {
 
 		// find products
 		doc.Find("span.listing a").Each(func(i int, s *goquery.Selection) {
+			p := &Product{}
 			// For each item found, get the band and title
 			href, ok := s.Attr("href")
+
+			// find image
+			s.Parent().Parent().Prev().Find("img").Each(func(j int, js *goquery.Selection) {
+				imageSrc, ok := js.Attr("src")
+				if ok {
+					p.href = imageSrc
+				}
+			})
+
+			// find price
+			s.Parent().Parent().Next().Next().Find("strong").Each(func(j int, js *goquery.Selection) {
+				priceRaw := strings.Replace(strings.TrimLeft(js.Text(), "$"), ",", "", -1)
+				priceFloat, err := strconv.ParseFloat(priceRaw, 64)
+				if err != nil {
+					logrus.Warn(err)
+				} else {
+					p.price = priceFloat
+				}
+			})
 			if ok {
-				n.products = append(n.products, Product{name: s.Text(), href: href, currency: n.currency})
+				p.currency, p.name, p.href = s.Text(), n.currency, href
+				n.products = append(n.products, p)
 			}
 		})
 		break
