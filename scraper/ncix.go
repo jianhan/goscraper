@@ -40,6 +40,8 @@ func (n *ncix) Products() []*Product {
 }
 
 func (n *ncix) Scrape() error {
+	// clear data first
+	RemoveContents(n.name)
 	// create dir for downloaded data
 	if err := CreateDirIfNotExist(n.name); err != nil {
 		return err
