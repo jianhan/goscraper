@@ -106,13 +106,11 @@ func (n *ncix) fetchProducts() error {
 
 		// find products
 		doc.Find("span.listing a").Each(func(i int, s *goquery.Selection) {
-			p := Product{}
-
+			p := Product{CategoryHref: c.Href}
 			// find Href and Name
 			href, ok := s.Attr("href")
 			if ok {
-				p.Currency, p.Name, p.Href = s.Text(), n.currency, href
-				n.products = append(n.products, p)
+				p.Currency, p.Name, p.Href = n.currency, s.Text(), href
 			}
 
 			// find image
@@ -134,8 +132,12 @@ func (n *ncix) fetchProducts() error {
 					p.Price = priceFloat
 				}
 			})
-
+			if p.Price > 0 {
+				// append product into products
+				n.products = append(n.products, p)
+			}
 		})
+		break
 	}
 
 	return nil

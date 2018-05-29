@@ -70,7 +70,6 @@ func RemoveContents(dir string) error {
 
 func OutputJSONData(scraper Scraper) error {
 	products, categories := scraper.Products(), scraper.Categories()
-
 	if len(products) == 0 {
 		return errors.New("empty products")
 	}
