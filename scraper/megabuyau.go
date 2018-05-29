@@ -1,5 +1,14 @@
 package scraper
 
+import (
+	"fmt"
+	"log"
+	"net/http"
+
+	"github.com/PuerkitoBio/goquery"
+	"github.com/davecgh/go-spew/spew"
+)
+
 type megabuyau struct {
 	name       string
 	url        string
@@ -43,6 +52,32 @@ func (m *megabuyau) Scrape() error {
 }
 
 func (m *megabuyau) fetchCategories(url string) error {
+
+	// Request the HTML page.
+	res, err := http.Get(url)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer res.Body.Close()
+	if res.StatusCode != 200 {
+		return fmt.Errorf("status code error: %d %s", res.StatusCode, res.Status)
+	}
+
+	// Load the HTML document
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	if err != nil {
+		return err
+	}
+
+	// get all links with class categoryLink
+	doc.Find("a.categoryLink").Each(func(i int, s *goquery.Selection) {
+		// For each item found, get the band and title
+		href, ok := s.Attr("href")
+		if ok && href != "" {
+			m.categories = append(m.categories, Category{Name: s.Text(), Href: href})
+		}
+	})
+	spew.Dump(m.categories)
 	return nil
 }
 
