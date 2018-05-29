@@ -77,7 +77,7 @@ func (m *megabuyau) fetchCategories(url string) error {
 		// For each item found, get the band and title
 		href, ok := s.Attr("href")
 		if ok && href != "" {
-			m.categories = append(m.categories, Category{Name: s.Text(), Href: href})
+			m.categories = append(m.categories, Category{Name: s.Text(), URL: href})
 		}
 	})
 
@@ -86,58 +86,71 @@ func (m *megabuyau) fetchCategories(url string) error {
 
 func (m *megabuyau) fetchProducts() error {
 	// TODO: uncomment this code when deploy to production
-	m.categories = append(m.categories[:0], m.categories[0+1:]...)
+	m.categories = append([]Category{}, m.categories[2+1:]...)
 	for _, c := range m.categories {
-		// Request the HTML page.
-		res, err := http.Get(c.Href)
-		if err != nil {
+		spew.Dump(c.URL)
+		if err := m.fetchProductsByURL(c.URL, c.URL); err != nil {
 			return err
 		}
-		defer res.Body.Close()
-		if res.StatusCode != 200 {
-			return fmt.Errorf("status code error: %d %s", res.StatusCode, res.Status)
-		}
-
-		// Load the HTML document
-		doc, err := goquery.NewDocumentFromReader(res.Body)
-		if err != nil {
-			return err
-		}
-
-		// find products
-		doc.Find("div.productListing div.productListingRow").Each(func(i int, s *goquery.Selection) {
-			p := Product{CategoryHref: c.Href}
-
-			// find image
-			s.Find("div.image > a > img").Each(func(ii int, is *goquery.Selection) {
-				src, ok := is.Attr("src")
-				if ok {
-					p.Image = src
-				}
-			})
-
-			// find name
-			s.Find("div.nameDescription > a").Each(func(ni int, ns *goquery.Selection) {
-				p.Name = ns.Text()
-			})
-
-			// find price
-			s.Find("div.price > span").Each(func(ni int, ns *goquery.Selection) {
-				priceRaw := strings.Replace(strings.TrimLeft(ns.Text(), "$"), ",", "", -1)
-				priceFloat, err := strconv.ParseFloat(priceRaw, 64)
-				if err != nil {
-					logrus.Warn(err)
-				} else {
-					p.Price = priceFloat
-				}
-			})
-			if p.Price > 0 {
-				// append product into products
-				m.products = append(m.products, p)
-			}
-		})
-		spew.Dump(m.products)
 		break
 	}
+	return nil
+}
+
+func (m *megabuyau) fetchProductsByURL(url, categoryUrl string) error {
+	// Request the HTML page.
+	res, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+	if res.StatusCode != 200 {
+		return fmt.Errorf("status code error: %d %s", res.StatusCode, res.Status)
+	}
+
+	// Load the HTML document
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	if err != nil {
+		return err
+	}
+
+	// find products
+	doc.Find("div.productListing div.productListingRow").Each(func(i int, s *goquery.Selection) {
+		p := Product{CategoryURL: categoryUrl}
+
+		// find image
+		s.Find("div.image > a > img").First().Each(func(ii int, is *goquery.Selection) {
+			src, ok := is.Attr("src")
+			if ok {
+				p.Image = src
+			}
+		})
+
+		// find name
+		s.Find("div.nameDescription > a").First().Each(func(ni int, ns *goquery.Selection) {
+			p.Name = ns.Text()
+		})
+
+		// find price
+		s.Find("div.price > span").First().Each(func(ni int, ns *goquery.Selection) {
+			priceRaw := strings.Replace(strings.TrimLeft(ns.Text(), "$"), ",", "", -1)
+			priceFloat, err := strconv.ParseFloat(priceRaw, 64)
+			if err != nil {
+				logrus.Warn(err)
+			} else {
+				p.Price = priceFloat
+			}
+		})
+		if p.Price > 0 {
+			// append product into products
+			m.products = append(m.products, p)
+		}
+	})
+
+	// check if pagination is on html
+	doc.Find("div.pagination > strong").First().Each(func(i int, s *goquery.Selection) {
+		spew.Dump(s.Text())
+	})
+
 	return nil
 }

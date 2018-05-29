@@ -9,14 +9,14 @@ type Scraper interface {
 
 type Category struct {
 	Name string `json:"name"`
-	Href string `json:"href"`
+	URL  string `json:"url"`
 }
 
 type Product struct {
-	Name         string  `json:"name"`
-	Price        float64 `json:"price"`
-	Currency     string  `json:"currency"`
-	Image        string  `json:"image"`
-	CategoryHref string  `json:"category_href"`
-	Description  string  `json:"description"`
+	Name        string  `json:"name"`
+	Price       float64 `json:"price"`
+	Currency    string  `json:"currency"`
+	Image       string  `json:"image"`
+	CategoryURL string  `json:"category_url"`
+	Description string  `json:"description"`
 }

@@ -79,7 +79,7 @@ func (n *ncix) fetchCategories(url string) error {
 		// For each item found, get the band and title
 		href, ok := s.Attr("href")
 		if ok && href != "" {
-			n.categories = append(n.categories, Category{Name: s.Text(), Href: href})
+			n.categories = append(n.categories, Category{Name: s.Text(), URL: href})
 		}
 	})
 
@@ -89,7 +89,7 @@ func (n *ncix) fetchCategories(url string) error {
 func (n *ncix) fetchProducts() error {
 	for _, c := range n.categories {
 		// Request the HTML page.
-		res, err := http.Get(c.Href)
+		res, err := http.Get(c.URL)
 		if err != nil {
 			return err
 		}
@@ -106,7 +106,7 @@ func (n *ncix) fetchProducts() error {
 
 		// find products
 		doc.Find("span.listing a").Each(func(i int, s *goquery.Selection) {
-			p := Product{CategoryHref: c.Href}
+			p := Product{CategoryURL: c.URL}
 			// find Href and Name
 			href, ok := s.Attr("href")
 			if ok {
@@ -114,7 +114,7 @@ func (n *ncix) fetchProducts() error {
 			}
 
 			// find image
-			s.Parent().Parent().Prev().Find("img").Each(func(j int, js *goquery.Selection) {
+			s.Parent().Parent().Prev().Find("img").First().Each(func(j int, js *goquery.Selection) {
 				imageSrc, ok := js.Attr("src")
 				if ok {
 					p.Image = imageSrc
@@ -122,7 +122,7 @@ func (n *ncix) fetchProducts() error {
 			})
 
 			// find Price
-			s.Parent().Parent().Next().Next().Find("strong").Each(func(j int, js *goquery.Selection) {
+			s.Parent().Parent().Next().Next().Find("strong").First().Each(func(j int, js *goquery.Selection) {
 				// Price format looks like $1,200.50
 				priceRaw := strings.Replace(strings.TrimLeft(js.Text(), "$"), ",", "", -1)
 				priceFloat, err := strconv.ParseFloat(priceRaw, 64)
