@@ -88,16 +88,17 @@ func (m *megabuyau) fetchProducts() error {
 	// TODO: uncomment this code when deploy to production
 	m.categories = append([]Category{}, m.categories[2+1:]...)
 	for _, c := range m.categories {
-		spew.Dump(c.URL)
 		if err := m.fetchProductsByURL(c.URL, c.URL); err != nil {
 			return err
 		}
 		break
 	}
+	spew.Dump(len(m.products))
 	return nil
 }
 
 func (m *megabuyau) fetchProductsByURL(url, categoryUrl string) error {
+	spew.Dump("fetch url ", url)
 	// Request the HTML page.
 	res, err := http.Get(url)
 	if err != nil {
@@ -115,7 +116,7 @@ func (m *megabuyau) fetchProductsByURL(url, categoryUrl string) error {
 	}
 
 	// find products
-	doc.Find("div.productListing div.productListingRow").Each(func(i int, s *goquery.Selection) {
+	doc.Find("div.productListing div.productListingRow, div.productListing div.productListingRowAlt").Each(func(i int, s *goquery.Selection) {
 		p := Product{CategoryURL: categoryUrl}
 
 		// find image
@@ -147,9 +148,19 @@ func (m *megabuyau) fetchProductsByURL(url, categoryUrl string) error {
 		}
 	})
 
-	// check if pagination is on html
-	doc.Find("div.pagination > strong").First().Each(func(i int, s *goquery.Selection) {
-		spew.Dump(s.Text())
+	// find next page url
+	doc.Find("div.pagination").First().Each(func(i int, s *goquery.Selection) {
+		s.Find("a").Each(func(ai int, as *goquery.Selection) {
+			title, ok := as.Attr("title")
+			if ok {
+				if strings.ToLower(strings.Trim(title, " ")) == "next page" {
+					nextPageHref, ok := as.Attr("href")
+					if ok {
+						m.fetchProductsByURL(nextPageHref, categoryUrl)
+					}
+				}
+			}
+		})
 	})
 
 	return nil
