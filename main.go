@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/davecgh/go-spew/spew"
 	"github.com/jianhan/goscraper/scraper"
 	"github.com/sirupsen/logrus"
 )
@@ -11,6 +10,7 @@ func main() {
 	if err := ncix.Scrape(); err != nil {
 		logrus.Warn(err)
 	}
-
-	spew.Dump(ncix.Products())
+	if err := scraper.OutputJSONData(ncix); err != nil {
+		logrus.Warn(err)
+	}
 }

@@ -1,9 +1,13 @@
 package scraper
 
 import (
+	"encoding/json"
+	"errors"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 )
 
@@ -61,5 +65,37 @@ func RemoveContents(dir string) error {
 			return err
 		}
 	}
+	return nil
+}
+
+func OutputJSONData(scraper Scraper) error {
+	products, categories := scraper.Products(), scraper.Categories()
+
+	if len(products) == 0 {
+		return errors.New("empty products")
+	}
+
+	if len(categories) == 0 {
+		return errors.New("empty categories")
+	}
+
+	productsJSON, err := json.Marshal(products)
+	if err != nil {
+		return err
+	}
+
+	categoriesJSON, err := json.Marshal(categories)
+	if err != nil {
+		return err
+	}
+
+	if err = ioutil.WriteFile(path.Join(scraper.Name(), "products.json"), productsJSON, 0644); err != nil {
+		return err
+	}
+
+	if err = ioutil.WriteFile(path.Join(scraper.Name(), "categories.json"), categoriesJSON, 0644); err != nil {
+		return err
+	}
+
 	return nil
 }

@@ -1,20 +1,21 @@
 package scraper
 
 type Scraper interface {
+	Name() string
 	Scrape() error
-	Categories() []*Category
-	Products() []*Product
+	Categories() []Category
+	Products() []Product
 }
 
 type Category struct {
-	name string `json:"name"`
-	href string `json:"href"`
+	Name string `json:"name"`
+	Href string `json:"href"`
 }
 
 type Product struct {
-	name         string  `json:"name"`
-	price        float64 `json:"price"`
-	currency     string  `json:"currency"`
-	href         string  `json:"href"`
-	categoryHref string  `json:"category_href"`
+	Name         string  `json:"name"`
+	Price        float64 `json:"price"`
+	Currency     string  `json:"currency"`
+	Href         string  `json:"href"`
+	CategoryHref string  `json:"category_href"`
 }
