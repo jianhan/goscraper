@@ -137,7 +137,6 @@ func (n *ncix) fetchProducts() error {
 				n.products = append(n.products, p)
 			}
 		})
-		break
 	}
 
 	return nil
