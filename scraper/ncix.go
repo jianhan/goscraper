@@ -91,7 +91,7 @@ func (n *ncix) fetchProducts() error {
 		// Request the HTML page.
 		res, err := http.Get(c.Href)
 		if err != nil {
-			logrus.Fatal(err)
+			return err
 		}
 		defer res.Body.Close()
 		if res.StatusCode != 200 {
@@ -110,14 +110,14 @@ func (n *ncix) fetchProducts() error {
 			// find Href and Name
 			href, ok := s.Attr("href")
 			if ok {
-				p.Currency, p.Name, p.Href = n.currency, s.Text(), href
+				p.Currency, p.Name, p.Image = n.currency, s.Text(), href
 			}
 
 			// find image
 			s.Parent().Parent().Prev().Find("img").Each(func(j int, js *goquery.Selection) {
 				imageSrc, ok := js.Attr("src")
 				if ok {
-					p.Href = imageSrc
+					p.Image = imageSrc
 				}
 			})
 
