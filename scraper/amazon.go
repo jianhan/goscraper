@@ -50,6 +50,7 @@ func (a *amazon) Scrape() error {
 	// start scraping
 	a.fetchCategories(a.url)
 	a.fetchProducts()
+
 	return nil
 }
 
@@ -110,8 +111,18 @@ func (a *amazon) fetchProducts() error {
 		doc.Find("div#mainResults").First().Each(func(i int, s *goquery.Selection) {
 			//p := Product{CategoryURL: c.URL}
 			s.Find("div.s-item-container").Each(func(divI int, divS *goquery.Selection) {
+
+				// find text
 				divS.First().Find("a.s-access-detail-page").Each(func(linkI int, linkS *goquery.Selection) {
 					spew.Dump(linkS.Text())
+				})
+
+				// find image
+				divS.First().Find("img.s-access-image").Each(func(imgI int, imgS *goquery.Selection) {
+					imgSrc, ok := imgS.Attr("src")
+					if ok {
+						spew.Dump(imgSrc)
+					}
 				})
 			})
 		})
