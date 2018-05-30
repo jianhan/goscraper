@@ -85,15 +85,11 @@ func (m *megabuyau) fetchCategories(url string) error {
 }
 
 func (m *megabuyau) fetchProducts() error {
-	// TODO: uncomment this code when deploy to production
-	m.categories = append([]Category{}, m.categories[2+1:]...)
 	for _, c := range m.categories {
 		if err := m.fetchProductsByURL(c.URL, c.URL); err != nil {
 			return err
 		}
-		break
 	}
-	spew.Dump(len(m.products))
 	return nil
 }
 
