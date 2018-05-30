@@ -78,7 +78,6 @@ func (a *amazon) fetchCategories(url string) error {
 				cs.First().Find("a").Each(func(li int, ls *goquery.Selection) {
 					href, ok := ls.Attr("href")
 					if ok {
-						spew.Dump(ls.Text())
 						a.categories = append(a.categories, Category{Name: ls.Text(), URL: a.homepage + href})
 					}
 				})
@@ -89,6 +88,35 @@ func (a *amazon) fetchCategories(url string) error {
 	return nil
 }
 
-func (a *amazon) fetchProducts() {
+func (a *amazon) fetchProducts() error {
+	for _, c := range a.categories {
+		// Request the HTML page.
+		res, err := http.Get(c.URL)
+		if err != nil {
+			return err
+		}
+		defer res.Body.Close()
+		if res.StatusCode != 200 {
+			return fmt.Errorf("status code error: %d %s", res.StatusCode, res.Status)
+		}
 
+		// Load the HTML document
+		doc, err := goquery.NewDocumentFromReader(res.Body)
+		if err != nil {
+			return err
+		}
+
+		// find products
+		doc.Find("div#mainResults").First().Each(func(i int, s *goquery.Selection) {
+			//p := Product{CategoryURL: c.URL}
+			s.Find("div.s-item-container").Each(func(divI int, divS *goquery.Selection) {
+				divS.First().Find("a.s-access-detail-page").Each(func(linkI int, linkS *goquery.Selection) {
+					spew.Dump(linkS.Text())
+				})
+			})
+		})
+		break
+	}
+
+	return nil
 }
