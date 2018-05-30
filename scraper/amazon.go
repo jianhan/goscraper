@@ -94,6 +94,7 @@ func (a *amazon) fetchCategories(url string) error {
 func (a *amazon) fetchProducts() error {
 	for _, c := range a.categories {
 		// Request the HTML page.
+		spew.Dump(c.URL)
 		res, err := http.Get(c.URL)
 		if err != nil {
 			return err
@@ -133,6 +134,11 @@ func (a *amazon) fetchProducts() error {
 					brandS.Find("span").Each(func(byI int, byS *goquery.Selection) {
 						if strings.ToLower(strings.Trim(byS.Text(), " ")) == "by" {
 							spew.Dump(byS.Next().Text())
+						}
+
+						// find price at the same time
+						if byS.HasClass("sx-price-whole") {
+							spew.Dump(byS.Text())
 						}
 					})
 				})
