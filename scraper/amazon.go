@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 
+	"strings"
+
 	"github.com/PuerkitoBio/goquery"
 	"github.com/davecgh/go-spew/spew"
 )
@@ -123,6 +125,16 @@ func (a *amazon) fetchProducts() error {
 					if ok {
 						spew.Dump(imgSrc)
 					}
+				})
+
+				// find brand
+				divS.Find(".a-row .a-spacing-none").Each(func(brandI int, brandS *goquery.Selection) {
+					// has two spans
+					brandS.Find("span").Each(func(byI int, byS *goquery.Selection) {
+						if strings.ToLower(strings.Trim(byS.Text(), " ")) == "by" {
+							spew.Dump(byS.Next().Text())
+						}
+					})
 				})
 			})
 		})
