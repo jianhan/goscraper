@@ -145,6 +145,14 @@ func (a *amazon) fetchProducts() error {
 						if byS.HasClass("sx-price-fractional") {
 							spew.Dump(byS.Text())
 						}
+
+						// find rating
+						byS.Find("span.a-icon-alt").First().Each(func(ratingI int, ratingS *goquery.Selection) {
+							ratingSlice := strings.Split(ratingS.Text(), " ")
+							if len(ratingSlice) > 0 {
+								spew.Dump(ratingSlice[0])
+							}
+						})
 					})
 				})
 			})
