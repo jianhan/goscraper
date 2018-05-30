@@ -1,9 +1,6 @@
 package main
 
-import (
-	"github.com/jianhan/goscraper/scraper"
-	"github.com/sirupsen/logrus"
-)
+import "github.com/jianhan/goscraper/scraper"
 
 func main() {
 	//ncix := scraper.NewNCIXScrapper()
@@ -14,11 +11,17 @@ func main() {
 	//	panic(err)
 	//}
 
-	megabuyAU := scraper.NewMegabuyau()
-	if err := megabuyAU.Scrape(); err != nil {
+	//megabuyAU := scraper.NewMegabuyau()
+	//if err := megabuyAU.Scrape(); err != nil {
+	//	panic(err)
+	//}
+	//if err := scraper.OutputJSONData(megabuyAU); err != nil {
+	//	logrus.Warn(err)
+	//}
+
+	amazon := scraper.NewAmazon()
+	if err := amazon.Scrape(); err != nil {
 		panic(err)
 	}
-	if err := scraper.OutputJSONData(megabuyAU); err != nil {
-		logrus.Warn(err)
-	}
+
 }
