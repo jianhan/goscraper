@@ -92,7 +92,7 @@ func (m *megabuyau) fetchProducts() error {
 	return nil
 }
 
-func (m *megabuyau) fetchProductsByURL(url, categoryUrl string) error {
+func (m *megabuyau) fetchProductsByURL(url, categoryURL string) error {
 	// Request the HTML page.
 	res, err := http.Get(url)
 	if err != nil {
@@ -111,7 +111,7 @@ func (m *megabuyau) fetchProductsByURL(url, categoryUrl string) error {
 
 	// find products
 	doc.Find("div.productListing div.productListingRow, div.productListing div.productListingRowAlt").Each(func(i int, s *goquery.Selection) {
-		p := Product{CategoryURL: categoryUrl}
+		p := Product{CategoryURL: categoryURL}
 
 		// find image
 		s.Find("div.image > a > img").First().Each(func(ii int, is *goquery.Selection) {
@@ -150,7 +150,7 @@ func (m *megabuyau) fetchProductsByURL(url, categoryUrl string) error {
 				if strings.ToLower(strings.Trim(title, " ")) == "next page" {
 					nextPageHref, ok := as.Attr("href")
 					if ok {
-						m.fetchProductsByURL(nextPageHref, categoryUrl)
+						m.fetchProductsByURL(nextPageHref, categoryURL)
 					}
 				}
 			}

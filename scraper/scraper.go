@@ -19,4 +19,6 @@ type Product struct {
 	Image       string  `json:"image"`
 	CategoryURL string  `json:"category_url"`
 	Description string  `json:"description"`
+	Rating      float64 `json:"rating"`
+	Brand       string  `json:"brand"`
 }
