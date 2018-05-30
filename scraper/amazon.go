@@ -131,13 +131,18 @@ func (a *amazon) fetchProducts() error {
 				// find brand
 				divS.Find(".a-row .a-spacing-none").Each(func(brandI int, brandS *goquery.Selection) {
 					// has two spans
-					brandS.Find("span").Each(func(byI int, byS *goquery.Selection) {
+					brandS.Find("span, sup").Each(func(byI int, byS *goquery.Selection) {
 						if strings.ToLower(strings.Trim(byS.Text(), " ")) == "by" {
 							spew.Dump(byS.Next().Text())
 						}
 
-						// find price at the same time
+						// find whole price at the same time
 						if byS.HasClass("sx-price-whole") {
+							spew.Dump(byS.Text())
+						}
+
+						// find fractional price
+						if byS.HasClass("sx-price-fractional") {
 							spew.Dump(byS.Text())
 						}
 					})
