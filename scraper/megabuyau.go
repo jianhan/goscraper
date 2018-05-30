@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/sirupsen/logrus"
 )
 
@@ -94,7 +93,6 @@ func (m *megabuyau) fetchProducts() error {
 }
 
 func (m *megabuyau) fetchProductsByURL(url, categoryUrl string) error {
-	spew.Dump("fetch url ", url)
 	// Request the HTML page.
 	res, err := http.Get(url)
 	if err != nil {

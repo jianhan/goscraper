@@ -157,6 +157,13 @@ func (a *amazon) fetchProducts() error {
 				})
 			})
 		})
+
+		doc.Find("span#pagnNextString").First().Each(func(i int, selection *goquery.Selection) {
+			href, ok := selection.Parent().Attr("href")
+			if ok {
+				spew.Dump(a.homepage + href)
+			}
+		})
 		break
 	}
 
