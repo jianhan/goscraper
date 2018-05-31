@@ -19,8 +19,13 @@ func main() {
 	//	logrus.Warn(err)
 	//}
 
-	amazon := scraper.NewAmazon()
-	if err := amazon.Scrape(); err != nil {
+	//amazon := scraper.NewAmazon()
+	//if err := amazon.Scrape(); err != nil {
+	//	panic(err)
+	//}
+
+	umart := scraper.NewUmart()
+	if err := umart.Scrape(); err != nil {
 		panic(err)
 	}
 
