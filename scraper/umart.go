@@ -86,15 +86,10 @@ func (u *umart) fetchCategories(url string) error {
 }
 
 func (u *umart) fetchProducts() error {
-	i := 0
 	for _, c := range u.categories {
 		logrus.Infof("Start fetching %s : %s", c.Name, c.URL)
 		if err := u.fetchProductsByURL(c.URL, c.URL); err != nil {
 			return err
-		}
-		i++
-		if i == 10 {
-			break
 		}
 	}
 	return nil
@@ -165,13 +160,13 @@ func (u *umart) fetchProductsByURL(url, categoryURL string) error {
 		if s.Text() == ">" {
 			href, ok := s.Attr("href")
 			if ok {
-				spew.Dump(href)
 				nextPageURL = href
 			}
 		}
 	})
 
 	if nextPageURL != "" {
+		spew.Dump(nextPageURL)
 		u.fetchProductsByURL(u.homepageURL+"/"+nextPageURL, categoryURL)
 	}
 
