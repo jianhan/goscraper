@@ -69,7 +69,7 @@ func (u *umart) fetchProductsByURL(url, categoryURL string) error {
 
 	// find products
 	doc.Find("li.goods_info").Each(func(i int, s *goquery.Selection) {
-		p := Product{CategoryURL: categoryURL}
+		p := Product{CategoryURL: categoryURL, Currency: u.currency}
 
 		// find image
 		s.First().Find("div.goods_img > a > img").Each(func(imgI int, imgS *goquery.Selection) {
@@ -99,8 +99,7 @@ func (u *umart) fetchProductsByURL(url, categoryURL string) error {
 			}
 		})
 		if p.Price > 0 {
-			p.Currency = u.currency
-			u.products = append(u.products, p)
+			u.addProduct(p)
 		}
 	})
 

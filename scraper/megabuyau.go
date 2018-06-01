@@ -71,7 +71,7 @@ func (m *megabuyau) fetchProductsByURL(url, categoryURL string) error {
 
 	// find products
 	doc.Find("div.productListing div.productListingRow, div.productListing div.productListingRowAlt").Each(func(i int, s *goquery.Selection) {
-		p := Product{CategoryURL: categoryURL}
+		p := Product{CategoryURL: categoryURL, Currency: m.currency}
 
 		// find image
 		s.Find("div.image > a > img").First().Each(func(ii int, is *goquery.Selection) {
@@ -94,8 +94,7 @@ func (m *megabuyau) fetchProductsByURL(url, categoryURL string) error {
 		})
 		if p.Price > 0 {
 			// append product into products
-			p.Currency = m.currency
-			m.products = append(m.products, p)
+			m.addProduct(p)
 		}
 	})
 

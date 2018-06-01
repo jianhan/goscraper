@@ -61,7 +61,7 @@ func (n *ncix) fetchProducts() error {
 
 		// find products
 		doc.Find("span.listing a").Each(func(i int, s *goquery.Selection) {
-			p := Product{CategoryURL: c.URL}
+			p := Product{CategoryURL: c.URL, Currency: n.currency}
 			// find Href and Name
 			href, ok := s.Attr("href")
 			if ok {
@@ -84,8 +84,7 @@ func (n *ncix) fetchProducts() error {
 			})
 			if p.Price > 0 {
 				// append product into products
-				p.Currency = n.currency
-				n.products = append(n.products, p)
+				n.addProduct(p)
 			}
 		})
 	}
