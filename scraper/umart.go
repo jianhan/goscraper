@@ -1,10 +1,6 @@
 package scraper
 
 import (
-	"fmt"
-	"log"
-	"net/http"
-
 	"strconv"
 	"strings"
 
@@ -38,21 +34,11 @@ func (u *umart) Scrape() error {
 }
 
 func (u *umart) fetchCategories() error {
-	// fetch category html page
-	res, err := http.Get(u.categoryURL)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer res.Body.Close()
-	if res.StatusCode != 200 {
-		return fmt.Errorf("status code error: %d %s", res.StatusCode, res.Status)
-	}
-
-	// Load the HTML document
-	doc, err := goquery.NewDocumentFromReader(res.Body)
+	doc, fn, err := u.htmlDoc(u.categoryURL)
 	if err != nil {
 		return err
 	}
+	defer fn()
 
 	// get all links with class categoryLink
 	doc.Find("div.ovhide.productsIn.productText > a").Each(func(i int, s *goquery.Selection) {
@@ -77,20 +63,11 @@ func (u *umart) fetchProducts() error {
 }
 
 func (u *umart) fetchProductsByURL(url, categoryURL string) error {
-	res, err := http.Get(url)
+	doc, fn, err := u.htmlDoc(url)
 	if err != nil {
 		return err
 	}
-	defer res.Body.Close()
-	if res.StatusCode != 200 {
-		return fmt.Errorf("status code error: %d %s", res.StatusCode, res.Status)
-	}
-
-	// Load the HTML document
-	doc, err := goquery.NewDocumentFromReader(res.Body)
-	if err != nil {
-		return err
-	}
+	defer fn()
 
 	// find products
 	doc.Find("li.goods_info").Each(func(i int, s *goquery.Selection) {
@@ -106,7 +83,6 @@ func (u *umart) fetchProductsByURL(url, categoryURL string) error {
 
 		// find product name
 		s.First().Find("div.content_holder1 > div.goods_name > a").Each(func(nameI int, nameS *goquery.Selection) {
-
 			// product url
 			href, ok := nameS.Attr("href")
 			if ok {
@@ -134,8 +110,8 @@ func (u *umart) fetchProductsByURL(url, categoryURL string) error {
 		u.products = append(u.products, p)
 	})
 
-	var nextPageURL string
 	// find next page url
+	var nextPageURL string
 	doc.Find("ul.page li a").Each(func(i int, s *goquery.Selection) {
 		if s.Text() == ">" {
 			href, ok := s.Attr("href")
