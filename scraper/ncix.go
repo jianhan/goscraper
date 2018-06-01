@@ -1,78 +1,43 @@
 package scraper
 
 import (
-	"log"
-	"net/http"
-
-	"fmt"
-
-	"strings"
-
-	"strconv"
-
 	"github.com/PuerkitoBio/goquery"
 	"github.com/sirupsen/logrus"
 )
 
 type ncix struct {
-	name       string
-	url        string
-	categories []Category
-	products   []Product
-	currency   string
+	base
 }
 
-func NewNCIXScrapper() Scraper {
-	return &ncix{
-		// every scrapper follow different algorithm, therefore do not needed to pass as param
-		url:      "https://www.ncix.com/categories/",
-		currency: "CAD",
-		name:     "NCIX",
+func NewNCIX() Scraper {
+	b := base{
+		homepageURL: "https://www.ncix.com",
+		name:        "NCIX",
+		categoryURL: "https://www.ncix.com/categories/",
+		currency:    "CAD",
 	}
-}
 
-func (n *ncix) Name() string {
-	return n.name
-}
-
-func (n *ncix) Categories() []Category {
-	return n.categories
-}
-
-func (n *ncix) Products() []Product {
-	return n.products
+	return &ncix{b}
 }
 
 func (n *ncix) Scrape() error {
-	// clear data first
-	RemoveContents(n.name)
-	// create dir for downloaded data
-	if err := CreateDirIfNotExist(n.name); err != nil {
+	// start scraping
+	if err := n.fetchCategories(); err != nil {
+		return err
+	}
+	if err := n.fetchProducts(); err != nil {
 		return err
 	}
 
-	// start scraping
-	n.fetchCategories(n.url)
-	n.fetchProducts()
 	return nil
 }
 
-func (n *ncix) fetchCategories(url string) error {
-	// Request the HTML page.
-	res, err := http.Get(url)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer res.Body.Close()
-	if res.StatusCode != 200 {
-		return fmt.Errorf("status code error: %d %s", res.StatusCode, res.Status)
-	}
-
-	// Load the HTML document
-	doc, err := goquery.NewDocumentFromReader(res.Body)
+func (n *ncix) fetchCategories() error {
+	doc, fn, err := n.htmlDoc(n.categoryURL)
 	if err != nil {
 		return err
 	}
+	defer fn()
 
 	// find categories
 	doc.Find("div#sublinks a").Each(func(i int, s *goquery.Selection) {
@@ -88,21 +53,11 @@ func (n *ncix) fetchCategories(url string) error {
 
 func (n *ncix) fetchProducts() error {
 	for _, c := range n.categories {
-		// Request the HTML page.
-		res, err := http.Get(c.URL)
+		doc, fn, err := n.htmlDoc(c.URL)
 		if err != nil {
 			return err
 		}
-		defer res.Body.Close()
-		if res.StatusCode != 200 {
-			return fmt.Errorf("status code error: %d %s", res.StatusCode, res.Status)
-		}
-
-		// Load the HTML document
-		doc, err := goquery.NewDocumentFromReader(res.Body)
-		if err != nil {
-			return err
-		}
+		defer fn()
 
 		// find products
 		doc.Find("span.listing a").Each(func(i int, s *goquery.Selection) {
@@ -123,17 +78,13 @@ func (n *ncix) fetchProducts() error {
 
 			// find Price
 			s.Parent().Parent().Next().Next().Find("strong").First().Each(func(j int, js *goquery.Selection) {
-				// Price format looks like $1,200.50
-				priceRaw := strings.Replace(strings.TrimLeft(js.Text(), "$"), ",", "", -1)
-				priceFloat, err := strconv.ParseFloat(priceRaw, 64)
-				if err != nil {
+				if p.Price, err = n.priceStrToFloat(js.Text()); err != nil {
 					logrus.Warn(err)
-				} else {
-					p.Price = priceFloat
 				}
 			})
 			if p.Price > 0 {
 				// append product into products
+				p.Currency = n.currency
 				n.products = append(n.products, p)
 			}
 		})

@@ -21,17 +21,17 @@ func NewUmart() Scraper {
 }
 
 func (u *umart) Scrape() error {
-	if err := u.FetchCategories(); err != nil {
+	if err := u.fetchCategories(); err != nil {
 		return err
 	}
-	if err := u.FetchProducts(); err != nil {
+	if err := u.fetchProducts(); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (u *umart) FetchCategories() error {
+func (u *umart) fetchCategories() error {
 	doc, fn, err := u.htmlDoc(u.categoryURL)
 	if err != nil {
 		return err
@@ -49,7 +49,7 @@ func (u *umart) FetchCategories() error {
 	return nil
 }
 
-func (u *umart) FetchProducts() error {
+func (u *umart) fetchProducts() error {
 	for _, c := range u.categories {
 		if err := u.fetchProductsByURL(c.URL, u.categoryURL); err != nil {
 			return err
@@ -98,8 +98,10 @@ func (u *umart) fetchProductsByURL(url, categoryURL string) error {
 				logrus.Warn(err)
 			}
 		})
-		p.Currency = u.currency
-		u.products = append(u.products, p)
+		if p.Price > 0 {
+			p.Currency = u.currency
+			u.products = append(u.products, p)
+		}
 	})
 
 	// find next page url

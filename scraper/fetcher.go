@@ -1,6 +1,7 @@
 package scraper
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -78,4 +79,20 @@ func (b *base) getLinkFullURL(url string) string {
 	url = strings.Replace(url, "/", "", -1)
 
 	return b.homepageURL + "/" + url
+}
+
+func (b *base) Validate() error {
+	if strings.Trim(b.Name(), " ") == "" {
+		return errors.New("empty name")
+	}
+
+	if len(b.Categories()) == 0 {
+		return errors.New("empty categories")
+	}
+
+	if len(b.Products()) == 0 {
+		return errors.New("empty products")
+	}
+
+	return nil
 }

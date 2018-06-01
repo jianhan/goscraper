@@ -1,11 +1,6 @@
 package scraper
 
 import (
-	"fmt"
-	"log"
-	"net/http"
-
-	"strconv"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -13,63 +8,38 @@ import (
 )
 
 type megabuyau struct {
-	name       string
-	url        string
-	categories []Category
-	products   []Product
-	currency   string
+	base
 }
 
 func NewMegabuyau() Scraper {
-	return &megabuyau{
-		url:      "https://www.megabuy.com.au/computer-components-c1160.html",
-		currency: "AUD",
-		name:     "Mega Buy Australia",
+	b := base{
+		homepageURL: "https://www.megabuy.com.au",
+		name:        "NCIX",
+		categoryURL: "https://www.megabuy.com.au/computer-components-c1160.html",
+		currency:    "CAD",
 	}
-}
 
-func (m *megabuyau) Name() string {
-	return m.name
-}
-
-func (m *megabuyau) Categories() []Category {
-	return m.categories
-}
-
-func (m *megabuyau) Products() []Product {
-	return m.products
+	return &megabuyau{b}
 }
 
 func (m *megabuyau) Scrape() error {
-	// clear data first
-	RemoveContents(m.name)
-	// create dir for downloaded data
-	if err := CreateDirIfNotExist(m.name); err != nil {
+	// start scraping
+	if err := m.fetchCategories(); err != nil {
+		return err
+	}
+	if err := m.fetchProducts(); err != nil {
 		return err
 	}
 
-	// start scraping
-	m.fetchCategories(m.url)
-	m.fetchProducts()
 	return nil
 }
 
-func (m *megabuyau) fetchCategories(url string) error {
-	// Request the HTML page.
-	res, err := http.Get(url)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer res.Body.Close()
-	if res.StatusCode != 200 {
-		return fmt.Errorf("status code error: %d %s", res.StatusCode, res.Status)
-	}
-
-	// Load the HTML document
-	doc, err := goquery.NewDocumentFromReader(res.Body)
+func (m *megabuyau) fetchCategories() error {
+	doc, fn, err := m.htmlDoc(m.categoryURL)
 	if err != nil {
 		return err
 	}
+	defer fn()
 
 	// get all links with class categoryLink
 	doc.Find("a.categoryLink").Each(func(i int, s *goquery.Selection) {
@@ -93,21 +63,11 @@ func (m *megabuyau) fetchProducts() error {
 }
 
 func (m *megabuyau) fetchProductsByURL(url, categoryURL string) error {
-	// Request the HTML page.
-	res, err := http.Get(url)
+	doc, fn, err := m.htmlDoc(url)
 	if err != nil {
 		return err
 	}
-	defer res.Body.Close()
-	if res.StatusCode != 200 {
-		return fmt.Errorf("status code error: %d %s", res.StatusCode, res.Status)
-	}
-
-	// Load the HTML document
-	doc, err := goquery.NewDocumentFromReader(res.Body)
-	if err != nil {
-		return err
-	}
+	defer fn()
 
 	// find products
 	doc.Find("div.productListing div.productListingRow, div.productListing div.productListingRowAlt").Each(func(i int, s *goquery.Selection) {
@@ -128,16 +88,13 @@ func (m *megabuyau) fetchProductsByURL(url, categoryURL string) error {
 
 		// find price
 		s.Find("div.price > span").First().Each(func(ni int, ns *goquery.Selection) {
-			priceRaw := strings.Replace(strings.TrimLeft(ns.Text(), "$"), ",", "", -1)
-			priceFloat, err := strconv.ParseFloat(priceRaw, 64)
-			if err != nil {
+			if p.Price, err = m.priceStrToFloat(ns.Text()); err != nil {
 				logrus.Warn(err)
-			} else {
-				p.Price = priceFloat
 			}
 		})
 		if p.Price > 0 {
 			// append product into products
+			p.Currency = m.currency
 			m.products = append(m.products, p)
 		}
 	})
