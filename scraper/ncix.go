@@ -44,7 +44,7 @@ func (n *ncix) fetchCategories() error {
 		// For each item found, get the band and title
 		href, ok := s.Attr("href")
 		if ok && href != "" {
-			n.categories = append(n.categories, Category{Name: s.Text(), URL: href})
+			n.addCategory(Category{Name: s.Text(), URL: href})
 		}
 	})
 

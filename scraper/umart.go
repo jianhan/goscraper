@@ -42,7 +42,7 @@ func (u *umart) fetchCategories() error {
 	doc.Find("div.ovhide.productsIn.productText > a").Each(func(i int, s *goquery.Selection) {
 		href, ok := s.Attr("href")
 		if ok && href != "" {
-			u.categories = append(u.categories, Category{Name: s.Text(), URL: u.getLinkFullURL(href)})
+			u.addCategory(Category{Name: s.Text(), URL: u.getLinkFullURL(href)})
 		}
 	})
 

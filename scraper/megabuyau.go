@@ -46,7 +46,7 @@ func (m *megabuyau) fetchCategories() error {
 		// For each item found, get the band and title
 		href, ok := s.Attr("href")
 		if ok && href != "" {
-			m.categories = append(m.categories, Category{Name: s.Text(), URL: href})
+			m.addCategory(Category{Name: s.Text(), URL: href})
 		}
 	})
 

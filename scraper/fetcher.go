@@ -76,9 +76,9 @@ func (b *base) getLinkFullURL(url string) string {
 		return url
 	}
 	url = strings.Replace(url, " ", "", -1)
-	url = strings.Replace(url, "/", "", -1)
+	url = strings.Trim(url, "/")
 
-	return strings.Replace(b.homepageURL, "/", "", -1) + "/" + url
+	return strings.Trim(b.homepageURL, "/") + "/" + url
 }
 
 func (b *base) Validate() error {
