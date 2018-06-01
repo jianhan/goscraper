@@ -1,9 +1,6 @@
 package scraper
 
 import (
-	"strconv"
-	"strings"
-
 	"github.com/PuerkitoBio/goquery"
 	"github.com/sirupsen/logrus"
 )
@@ -19,6 +16,7 @@ func NewUmart() Scraper {
 		homepageURL: "https://www.umart.com.au",
 		currency:    "AUD",
 	}
+
 	return &umart{b}
 }
 
@@ -96,14 +94,8 @@ func (u *umart) fetchProductsByURL(url, categoryURL string) error {
 
 		// find product price
 		s.First().Find("span.goods_price").Each(func(priceI int, priceS *goquery.Selection) {
-			priceRaw := strings.Replace(priceS.Text(), " ", "", -1)
-			priceRaw = strings.Replace(priceRaw, ",", "", -1)
-			priceRaw = strings.Replace(priceRaw, "$", "", -1)
-			priceFloat, err := strconv.ParseFloat(priceRaw, 64)
-			if err != nil {
+			if p.Price, err = u.priceStrToFloat(priceS.Text()); err != nil {
 				logrus.Warn(err)
-			} else {
-				p.Price = priceFloat
 			}
 		})
 		p.Currency = u.currency
