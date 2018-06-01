@@ -79,33 +79,3 @@ func (b *base) getLinkFullURL(url string) string {
 
 	return b.homepageURL + "/" + url
 }
-
-//func (b *base) OutputJSON() error {
-//	if len(b.products) == 0 {
-//		return errors.New("empty products")
-//	}
-//
-//	if len(b.categories) == 0 {
-//		return errors.New("empty categories")
-//	}
-//
-//	productsJSON, err := json.Marshal(b.products)
-//	if err != nil {
-//		return err
-//	}
-//
-//	categoriesJSON, err := json.Marshal(b.categories)
-//	if err != nil {
-//		return err
-//	}
-//
-//	if err = ioutil.WriteFile(path.Join(b.Name(), "products.json"), productsJSON, 0644); err != nil {
-//		return err
-//	}
-//
-//	if err = ioutil.WriteFile(path.Join(b.Name(), "categories.json"), categoriesJSON, 0644); err != nil {
-//		return err
-//	}
-//
-//	return nil
-//}

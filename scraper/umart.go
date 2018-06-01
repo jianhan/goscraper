@@ -21,17 +21,17 @@ func NewUmart() Scraper {
 }
 
 func (u *umart) Scrape() error {
-	if err := u.fetchCategories(); err != nil {
+	if err := u.FetchCategories(); err != nil {
 		return err
 	}
-	if err := u.fetchProducts(); err != nil {
+	if err := u.FetchProducts(); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (u *umart) fetchCategories() error {
+func (u *umart) FetchCategories() error {
 	doc, fn, err := u.htmlDoc(u.categoryURL)
 	if err != nil {
 		return err
@@ -49,7 +49,7 @@ func (u *umart) fetchCategories() error {
 	return nil
 }
 
-func (u *umart) fetchProducts() error {
+func (u *umart) FetchProducts() error {
 	for _, c := range u.categories {
 		if err := u.fetchProductsByURL(c.URL, u.categoryURL); err != nil {
 			return err
