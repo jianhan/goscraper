@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 )
@@ -54,6 +56,18 @@ func (b *base) htmlDoc(url string) (*goquery.Document, func() error, error) {
 	}
 
 	return doc, res.Body.Close, nil
+}
+
+func (b *base) priceStrToFloat(priceStr string) (price float64, err error) {
+	priceRaw := strings.Replace(priceStr, " ", "", -1)
+	priceRaw = strings.Replace(priceRaw, ",", "", -1)
+	priceRaw = strings.Replace(priceRaw, "$", "", -1)
+	price, err = strconv.ParseFloat(priceRaw, 64)
+	if err != nil {
+		return
+	}
+
+	return
 }
 
 //func (b *base) OutputJSON() error {
