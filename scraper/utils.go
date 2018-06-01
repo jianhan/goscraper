@@ -2,13 +2,14 @@ package scraper
 
 import (
 	"encoding/json"
-	"errors"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
 	"path/filepath"
+
+	"github.com/gosimple/slug"
 )
 
 // DownloadFile will download a url to a local file. It's efficient because it will
@@ -65,19 +66,21 @@ func RemoveContents(dir string) error {
 			return err
 		}
 	}
+
 	return nil
 }
 
 func OutputJSONData(scraper Scraper) error {
+	if err := scraper.Validate(); err != nil {
+		return err
+	}
+
+	// create folder if not exists & clean folder
+	folderName := slug.Make(scraper.Name())
+	CreateDirIfNotExist(folderName)
+	RemoveContents(folderName)
+
 	products, categories := scraper.Products(), scraper.Categories()
-	if len(products) == 0 {
-		return errors.New("empty products")
-	}
-
-	if len(categories) == 0 {
-		return errors.New("empty categories")
-	}
-
 	productsJSON, err := json.Marshal(products)
 	if err != nil {
 		return err
@@ -88,11 +91,11 @@ func OutputJSONData(scraper Scraper) error {
 		return err
 	}
 
-	if err = ioutil.WriteFile(path.Join(scraper.Name(), "products.json"), productsJSON, 0644); err != nil {
+	if err = ioutil.WriteFile(path.Join(folderName, "products.json"), productsJSON, 0644); err != nil {
 		return err
 	}
 
-	if err = ioutil.WriteFile(path.Join(scraper.Name(), "categories.json"), categoriesJSON, 0644); err != nil {
+	if err = ioutil.WriteFile(path.Join(folderName, "categories.json"), categoriesJSON, 0644); err != nil {
 		return err
 	}
 

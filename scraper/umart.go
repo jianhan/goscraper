@@ -54,7 +54,6 @@ func (u *umart) fetchProducts() error {
 		if err := u.fetchProductsByURL(c.URL, u.categoryURL); err != nil {
 			return err
 		}
-		break
 	}
 
 	return nil

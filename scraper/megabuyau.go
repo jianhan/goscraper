@@ -14,7 +14,7 @@ type megabuyau struct {
 func NewMegabuyau() Scraper {
 	b := base{
 		homepageURL: "https://www.megabuy.com.au",
-		name:        "NCIX",
+		name:        "Megabuy Australia",
 		categoryURL: "https://www.megabuy.com.au/computer-components-c1160.html",
 		currency:    "CAD",
 	}
@@ -59,6 +59,7 @@ func (m *megabuyau) fetchProducts() error {
 			return err
 		}
 	}
+
 	return nil
 }
 

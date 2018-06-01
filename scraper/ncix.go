@@ -87,6 +87,7 @@ func (n *ncix) fetchProducts() error {
 				n.addProduct(p)
 			}
 		})
+		break
 	}
 
 	return nil
