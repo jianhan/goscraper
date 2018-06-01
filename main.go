@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/jianhan/goscraper/scraper"
-	"github.com/sirupsen/logrus"
 )
 
 func main() {
@@ -32,7 +31,7 @@ func main() {
 		panic(err)
 	}
 
-	if err := scraper.OutputJSONData(umart); err != nil {
-		logrus.Warn(err)
-	}
+	//if err := scraper.OutputJSONData(umart); err != nil {
+	//	logrus.Warn(err)
+	//}
 }

@@ -17,12 +17,13 @@ type umart struct {
 }
 
 func NewUmart() Scraper {
-	return &umart{
+	b := base{
 		name:        "Umart",
 		categoryURL: "https://www.umart.com.au/all-categories.html",
 		homepageURL: "https://www.umart.com.au",
 		currency:    "AUD",
 	}
+	return &umart{b}
 }
 
 func (u *umart) Scrape() error {
@@ -69,6 +70,7 @@ func (u *umart) fetchProducts() error {
 		if err := u.fetchProductsByURL(c.URL, u.categoryURL); err != nil {
 			return err
 		}
+		break
 	}
 
 	return nil
@@ -142,7 +144,6 @@ func (u *umart) fetchProductsByURL(url, categoryURL string) error {
 			}
 		}
 	})
-
 	if nextPageURL != "" {
 		u.fetchProductsByURL(nextPageURL, categoryURL)
 	}
