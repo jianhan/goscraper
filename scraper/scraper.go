@@ -2,7 +2,7 @@ package scraper
 
 type Scraper interface {
 	Name() string
-	Scrape() (categories []Category, products []Product, err error)
+	Scrape() error
 	Categories() []Category
 	Products() []Product
 }

@@ -70,6 +70,16 @@ func (b *base) priceStrToFloat(priceStr string) (price float64, err error) {
 	return
 }
 
+func (b *base) getLinkFullURL(url string) string {
+	if strings.HasPrefix(url, b.homepageURL) {
+		return url
+	}
+	url = strings.Replace(url, " ", "", -1)
+	url = strings.Replace(url, "/", "", -1)
+
+	return b.homepageURL + "/" + url
+}
+
 //func (b *base) OutputJSON() error {
 //	if len(b.products) == 0 {
 //		return errors.New("empty products")
