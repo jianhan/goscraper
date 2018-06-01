@@ -1,10 +1,11 @@
 package scraper
 
 import (
-	"encoding/json"
-	"errors"
-	"io/ioutil"
-	"path"
+	"fmt"
+	"log"
+	"net/http"
+
+	"github.com/PuerkitoBio/goquery"
 )
 
 type base struct {
@@ -36,32 +37,51 @@ func (b *base) addProduct(p Product) {
 	b.products = append(b.products, p)
 }
 
-func (b *base) OutputJSON() error {
-	if len(b.products) == 0 {
-		return errors.New("empty products")
-	}
-
-	if len(b.categories) == 0 {
-		return errors.New("empty categories")
-	}
-
-	productsJSON, err := json.Marshal(b.products)
+func (b *base) htmlDoc(url string) (*goquery.Document, func() error, error) {
+	// get html page
+	res, err := http.Get(url)
 	if err != nil {
-		return err
+		log.Fatal(err)
+	}
+	if res.StatusCode != 200 {
+		return nil, nil, fmt.Errorf("status code error: %d %s", res.StatusCode, res.Status)
 	}
 
-	categoriesJSON, err := json.Marshal(b.categories)
+	// Load the HTML document
+	doc, err := goquery.NewDocumentFromReader(res.Body)
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 
-	if err = ioutil.WriteFile(path.Join(b.Name(), "products.json"), productsJSON, 0644); err != nil {
-		return err
-	}
-
-	if err = ioutil.WriteFile(path.Join(b.Name(), "categories.json"), categoriesJSON, 0644); err != nil {
-		return err
-	}
-
-	return nil
+	return doc, res.Body.Close, nil
 }
+
+//func (b *base) OutputJSON() error {
+//	if len(b.products) == 0 {
+//		return errors.New("empty products")
+//	}
+//
+//	if len(b.categories) == 0 {
+//		return errors.New("empty categories")
+//	}
+//
+//	productsJSON, err := json.Marshal(b.products)
+//	if err != nil {
+//		return err
+//	}
+//
+//	categoriesJSON, err := json.Marshal(b.categories)
+//	if err != nil {
+//		return err
+//	}
+//
+//	if err = ioutil.WriteFile(path.Join(b.Name(), "products.json"), productsJSON, 0644); err != nil {
+//		return err
+//	}
+//
+//	if err = ioutil.WriteFile(path.Join(b.Name(), "categories.json"), categoriesJSON, 0644); err != nil {
+//		return err
+//	}
+//
+//	return nil
+//}
