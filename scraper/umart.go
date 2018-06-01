@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/sirupsen/logrus"
 )
 
@@ -23,94 +22,71 @@ type umart struct {
 }
 
 func NewUmart() Scraper {
-	return &umart{
-		url:         "https://www.umart.com.au/all-categories.html",
-		currency:    "AUD",
-		name:        "umart",
-		homepageURL: "https://www.umart.com.au",
+	return &scraper{
+		name:              "Umart",
+		categoryURL:       "https://www.umart.com.au/all-categories.html",
+		homepageURL:       "https://www.umart.com.au",
+		currency:          "AUD",
+		categoriesFetcher: uMartCategoriesFetcher,
 	}
 }
 
-func (u *umart) Name() string {
-	return u.name
-}
+func uMartCategoriesFetcher(url, homepageURL string) ([]Category, error) {
+	categories := []Category{}
 
-func (u *umart) Categories() []Category {
-	return u.categories
-}
-
-func (u *umart) Products() []Product {
-	return u.products
-}
-
-func (u *umart) Scrape() error {
-	// clear data first
-	RemoveContents(u.name)
-	// create dir for downloaded data
-	if err := CreateDirIfNotExist(u.name); err != nil {
-		return err
-	}
-
-	// start scraping
-	u.fetchCategories(u.url)
-	u.fetchProducts()
-	return nil
-}
-
-func (u *umart) fetchCategories(url string) error {
-	// Request the HTML page.
+	// fetch category html page
 	res, err := http.Get(url)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer res.Body.Close()
 	if res.StatusCode != 200 {
-		return fmt.Errorf("status code error: %d %s", res.StatusCode, res.Status)
+		return nil, fmt.Errorf("status code error: %d %s", res.StatusCode, res.Status)
 	}
 
 	// Load the HTML document
 	doc, err := goquery.NewDocumentFromReader(res.Body)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// get all links with class categoryLink
 	doc.Find("div.ovhide.productsIn.productText > a").Each(func(i int, s *goquery.Selection) {
 		href, ok := s.Attr("href")
 		if ok && href != "" {
-			u.categories = append(u.categories, Category{Name: s.Text(), URL: u.homepageURL + "/" + href})
+			categories = append(categories, Category{Name: s.Text(), URL: homepageURL + "/" + href})
 		}
 	})
 
-	return nil
+	return categories, nil
 }
 
-func (u *umart) fetchProducts() error {
-	for _, c := range u.categories {
-		logrus.Infof("Start fetching %s : %s", c.Name, c.URL)
-		if err := u.fetchProductsByURL(c.URL, c.URL); err != nil {
-			return err
+func uMartProductsFetcher(categories []Category, currency string) (products []Product, err error) {
+	for _, c := range categories {
+		if err := fetchUMartProductsByURL(c.URL, c.URL, currency); err != nil {
+			return nil, err
 		}
 	}
 	return nil
 }
 
-func (u *umart) fetchProductsByURL(url, categoryURL string) error {
-	// Request the HTML page.
+func fetchUMartProductsByURL(url, categoryURL, currency, homepageURL string) ([]Product, error) {
 	res, err := http.Get(url)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer res.Body.Close()
 	if res.StatusCode != 200 {
-		return fmt.Errorf("status code error: %d %s", res.StatusCode, res.Status)
+		return nil, fmt.Errorf("status code error: %d %s", res.StatusCode, res.Status)
 	}
 
 	// Load the HTML document
 	doc, err := goquery.NewDocumentFromReader(res.Body)
 	if err != nil {
-		return err
+		return nil, err
 	}
+
+	products := []Product{}
 
 	// find products
 	doc.Find("li.goods_info").Each(func(i int, s *goquery.Selection) {
@@ -150,8 +126,8 @@ func (u *umart) fetchProductsByURL(url, categoryURL string) error {
 				p.Price = priceFloat
 			}
 		})
-		p.Currency = u.currency
-		u.products = append(u.products, p)
+		p.Currency = currency
+		products = append(products, p)
 	})
 
 	var nextPageURL string
@@ -166,8 +142,7 @@ func (u *umart) fetchProductsByURL(url, categoryURL string) error {
 	})
 
 	if nextPageURL != "" {
-		spew.Dump(nextPageURL)
-		u.fetchProductsByURL(u.homepageURL+"/"+nextPageURL, categoryURL)
+		fetchUMartProductsByURL(u.homepageURL+"/"+nextPageURL, categoryURL)
 	}
 
 	return nil
