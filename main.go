@@ -2,22 +2,27 @@ package main
 
 import (
 	"github.com/davecgh/go-spew/spew"
+	"github.com/jianhan/goscraper/output"
 	"github.com/jianhan/goscraper/scraper"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
-	//ncix := scraper.NewNCIX(true)
-	//megabuyAU := scraper.NewMegabuyau(true)
-	//umart := scraper.NewUmart(true)
-	//if err := run(ncix, megabuyAU, umart); err != nil {
-	//	logrus.Error(err)
-	//}
-	//if err := scraper.OutputJSONData(umart, megabuyAU, ncix); err != nil {
-	//	logrus.Warn(err)
-	//}
+	scrapers := []scraper.Scraper{scraper.NewNCIX(true), scraper.NewMegabuyau(true), scraper.NewUmart(true)}
+	if err := run(scrapers...); err != nil {
+		logrus.Error(err)
+	}
 
-	err := scraper.UploadS3()
-	spew.Dump(err)
+	if err := output.NewJSONWriter(scrapers).Write(); err != nil {
+		spew.Dump(err)
+		logrus.Error(err)
+	}
+
+	if err := output.NewS3Writer(scrapers).Write(); err != nil {
+		spew.Dump(err)
+		logrus.Error(err)
+	}
+
 }
 
 func run(scrapers ...scraper.Scraper) error {

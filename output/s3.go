@@ -15,6 +15,7 @@ import (
 	"github.com/gosimple/slug"
 	"github.com/jianhan/goscraper/scraper"
 	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
 )
 
 type s3Writer struct {
@@ -22,7 +23,7 @@ type s3Writer struct {
 }
 
 func NewS3Writer(scrapers []scraper.Scraper) OutputWriter {
-	return &jsonWriter{
+	return &s3Writer{
 		scrapers: scrapers,
 	}
 }
@@ -56,7 +57,7 @@ func (s *s3Writer) Write() error {
 		if err != nil {
 			return err
 		}
-		_, err = uploader.Upload(&s3manager.UploadInput{
+		r, err := uploader.Upload(&s3manager.UploadInput{
 			Bucket: aws.String(s3Bucket),
 			Key:    aws.String(productsFilePath),
 			Body:   productsFile,
@@ -64,12 +65,13 @@ func (s *s3Writer) Write() error {
 		if err != nil {
 			return fmt.Errorf("failed to upload file, %v", err)
 		}
+		logrus.WithField("result", r).Info("finished uploaded products")
 
 		categoriesFile, categoriesFilePath, err := getFileAndPath(folderName, "categories")
 		if err != nil {
 			return err
 		}
-		_, err = uploader.Upload(&s3manager.UploadInput{
+		r, err = uploader.Upload(&s3manager.UploadInput{
 			Bucket: aws.String(s3Bucket),
 			Key:    aws.String(categoriesFilePath),
 			Body:   categoriesFile,
@@ -77,12 +79,13 @@ func (s *s3Writer) Write() error {
 		if err != nil {
 			return fmt.Errorf("failed to upload file, %v", err)
 		}
+		logrus.WithField("result", r).Info("finished uploaded categories")
 
 		supplierFile, supplierFilePath, err := getFileAndPath(folderName, "supplier")
 		if err != nil {
 			return err
 		}
-		_, err = uploader.Upload(&s3manager.UploadInput{
+		r, err = uploader.Upload(&s3manager.UploadInput{
 			Bucket: aws.String(s3Bucket),
 			Key:    aws.String(supplierFilePath),
 			Body:   supplierFile,
@@ -90,6 +93,7 @@ func (s *s3Writer) Write() error {
 		if err != nil {
 			return fmt.Errorf("failed to upload file, %v", err)
 		}
+		logrus.WithField("result", r).Info("finished uploaded supplier")
 	}
 
 	return nil
