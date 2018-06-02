@@ -9,12 +9,13 @@ type umart struct {
 	base
 }
 
-func NewUmart() Scraper {
+func NewUmart(testMode bool) Scraper {
 	b := base{
 		name:        "Umart",
 		categoryURL: "https://www.umart.com.au/all-categories.html",
 		homepageURL: "https://www.umart.com.au",
 		currency:    "AUD",
+		testMode:    testMode,
 	}
 
 	return &umart{b}
@@ -55,6 +56,11 @@ func (u *umart) fetchProducts() error {
 			return err
 		}
 		if len(u.products) > 0 {
+			break
+		}
+
+		// test mode checking
+		if u.testMode && len(u.products) > 0 {
 			break
 		}
 	}

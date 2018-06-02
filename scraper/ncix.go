@@ -9,12 +9,13 @@ type ncix struct {
 	base
 }
 
-func NewNCIX() Scraper {
+func NewNCIX(testMode bool) Scraper {
 	b := base{
 		homepageURL: "https://www.ncix.com",
 		name:        "NCIX",
 		categoryURL: "https://www.ncix.com/categories/",
 		currency:    "CAD",
+		testMode:    testMode,
 	}
 
 	return &ncix{b}
@@ -87,7 +88,11 @@ func (n *ncix) fetchProducts() error {
 				n.addProduct(p)
 			}
 		})
-		break
+
+		// test mode checking
+		if n.testMode && len(n.products) > 0 {
+			break
+		}
 	}
 
 	return nil

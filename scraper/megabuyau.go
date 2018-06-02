@@ -11,12 +11,13 @@ type megabuyau struct {
 	base
 }
 
-func NewMegabuyau() Scraper {
+func NewMegabuyau(testMode bool) Scraper {
 	b := base{
 		homepageURL: "https://www.megabuy.com.au",
 		name:        "Megabuy Australia",
 		categoryURL: "https://www.megabuy.com.au/computer-components-c1160.html",
 		currency:    "CAD",
+		testMode:    testMode,
 	}
 
 	return &megabuyau{b}
@@ -57,6 +58,11 @@ func (m *megabuyau) fetchProducts() error {
 	for _, c := range m.categories {
 		if err := m.fetchProductsByURL(c.URL, c.URL); err != nil {
 			return err
+		}
+
+		// test mode checking
+		if m.testMode && len(m.products) > 0 {
+			break
 		}
 	}
 

@@ -18,6 +18,7 @@ type base struct {
 	products    []Product
 	currency    string
 	homepageURL string
+	testMode    bool
 }
 
 func (b *base) Name() string {
