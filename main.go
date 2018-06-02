@@ -7,18 +7,22 @@ import (
 
 func main() {
 	ncix := scraper.NewNCIX(true)
-	if err := ncix.Scrape(); err != nil {
-		panic(err)
-	}
 	megabuyAU := scraper.NewMegabuyau(true)
-	if err := megabuyAU.Scrape(); err != nil {
-		panic(err)
-	}
 	umart := scraper.NewUmart(true)
-	if err := umart.Scrape(); err != nil {
-		panic(err)
+	if err := run(ncix, megabuyAU, umart); err != nil {
+		logrus.Error(err)
 	}
 	if err := scraper.OutputJSONData(umart, megabuyAU, ncix); err != nil {
 		logrus.Warn(err)
 	}
+}
+
+func run(scrapers ...scraper.Scraper) error {
+	for _, scraper := range scrapers {
+		if err := scraper.Scrape(); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
