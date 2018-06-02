@@ -10,23 +10,15 @@ func main() {
 	if err := ncix.Scrape(); err != nil {
 		panic(err)
 	}
-	if err := scraper.OutputJSONData(ncix); err != nil {
-		panic(err)
-	}
-
 	megabuyAU := scraper.NewMegabuyau(true)
 	if err := megabuyAU.Scrape(); err != nil {
 		panic(err)
 	}
-	if err := scraper.OutputJSONData(megabuyAU); err != nil {
-		logrus.Warn(err)
-	}
-
 	umart := scraper.NewUmart(true)
 	if err := umart.Scrape(); err != nil {
 		panic(err)
 	}
-	if err := scraper.OutputJSONData(umart); err != nil {
+	if err := scraper.OutputJSONData(umart, megabuyAU, ncix); err != nil {
 		logrus.Warn(err)
 	}
 }

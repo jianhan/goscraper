@@ -70,49 +70,51 @@ func RemoveContents(dir string) error {
 	return nil
 }
 
-func OutputJSONData(scraper Scraper) error {
-	if err := scraper.Validate(); err != nil {
-		return err
-	}
+func OutputJSONData(scrapers ...Scraper) error {
+	for _, scraper := range scrapers {
+		if err := scraper.Validate(); err != nil {
+			return err
+		}
 
-	// create folder if not exists & clean folder
-	folderName := slug.Make(scraper.Name())
-	CreateDirIfNotExist(folderName)
-	RemoveContents(folderName)
+		// create folder if not exists & clean folder
+		folderName := slug.Make(scraper.Name())
+		CreateDirIfNotExist(folderName)
+		RemoveContents(folderName)
 
-	products, categories := scraper.Products(), scraper.Categories()
-	productsJSON, err := json.Marshal(products)
-	if err != nil {
-		return err
-	}
+		products, categories := scraper.Products(), scraper.Categories()
+		productsJSON, err := json.Marshal(products)
+		if err != nil {
+			return err
+		}
 
-	categoriesJSON, err := json.Marshal(categories)
-	if err != nil {
-		return err
-	}
+		categoriesJSON, err := json.Marshal(categories)
+		if err != nil {
+			return err
+		}
 
-	// write products
-	if err = ioutil.WriteFile(path.Join(folderName, "products.json"), productsJSON, 0644); err != nil {
-		return err
-	}
+		// write products
+		if err = ioutil.WriteFile(path.Join(folderName, "products.json"), productsJSON, 0644); err != nil {
+			return err
+		}
 
-	// write categories
-	if err = ioutil.WriteFile(path.Join(folderName, "categories.json"), categoriesJSON, 0644); err != nil {
-		return err
-	}
+		// write categories
+		if err = ioutil.WriteFile(path.Join(folderName, "categories.json"), categoriesJSON, 0644); err != nil {
+			return err
+		}
 
-	// write supplier
-	supplierJS, err := json.Marshal(struct {
-		Name        string `json:"name"`
-		HomepageURL string `json:"homepage_url"`
-		Currency    string `json:"currency"`
-	}{
-		Name:        scraper.Name(),
-		HomepageURL: scraper.HomepageURL(),
-		Currency:    scraper.Currency(),
-	})
-	if err = ioutil.WriteFile(path.Join(folderName, "supplier.json"), supplierJS, 0644); err != nil {
-		return err
+		// write supplier
+		supplierJS, err := json.Marshal(struct {
+			Name        string `json:"name"`
+			HomepageURL string `json:"homepage_url"`
+			Currency    string `json:"currency"`
+		}{
+			Name:        scraper.Name(),
+			HomepageURL: scraper.HomepageURL(),
+			Currency:    scraper.Currency(),
+		})
+		if err = ioutil.WriteFile(path.Join(folderName, "supplier.json"), supplierJS, 0644); err != nil {
+			return err
+		}
 	}
 
 	return nil
