@@ -55,9 +55,6 @@ func (u *umart) fetchProducts() error {
 		if err := u.fetchProductsByURL(c.URL, u.categoryURL); err != nil {
 			return err
 		}
-		if len(u.products) > 0 {
-			break
-		}
 
 		// test mode checking
 		if u.testMode && len(u.products) > 0 {
