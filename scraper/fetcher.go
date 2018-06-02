@@ -81,6 +81,14 @@ func (b *base) getLinkFullURL(url string) string {
 	return strings.Trim(b.homepageURL, "/") + "/" + url
 }
 
+func (b *base) HomepageURL() string {
+	return b.homepageURL
+}
+
+func (b *base) Currency() string {
+	return b.currency
+}
+
 func (b *base) Validate() error {
 	if strings.Trim(b.Name(), " ") == "" {
 		return errors.New("empty name")

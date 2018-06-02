@@ -91,11 +91,27 @@ func OutputJSONData(scraper Scraper) error {
 		return err
 	}
 
+	// write products
 	if err = ioutil.WriteFile(path.Join(folderName, "products.json"), productsJSON, 0644); err != nil {
 		return err
 	}
 
+	// write categories
 	if err = ioutil.WriteFile(path.Join(folderName, "categories.json"), categoriesJSON, 0644); err != nil {
+		return err
+	}
+
+	// write supplier
+	supplierJS, err := json.Marshal(struct {
+		Name        string `json:"name"`
+		HomepageURL string `json:"homepage_url"`
+		Currency    string `json:"currency"`
+	}{
+		Name:        scraper.Name(),
+		HomepageURL: scraper.HomepageURL(),
+		Currency:    scraper.Currency(),
+	})
+	if err = ioutil.WriteFile(path.Join(folderName, "supplier.json"), supplierJS, 0644); err != nil {
 		return err
 	}
 

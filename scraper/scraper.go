@@ -6,6 +6,8 @@ type Scraper interface {
 	Categories() []Category
 	Products() []Product
 	Validate() error
+	HomepageURL() string
+	Currency() string
 }
 
 type Category struct {
