@@ -66,7 +66,7 @@ func (n *ncix) fetchProducts() error {
 			// find Href and Name
 			href, ok := s.Attr("href")
 			if ok {
-				p.Currency, p.Name, p.Image = n.currency, s.Text(), href
+				p.Currency, p.Name, p.URL = n.currency, s.Text(), href
 			}
 
 			// find image

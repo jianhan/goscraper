@@ -21,9 +21,13 @@ func run(scrapers ...scraper.Scraper) error {
 		}
 	}
 
-	if err := output.NewJSONWriter(scrapers).Write(); err != nil {
+	if err := output.NewFirestore(scrapers).Write(); err != nil {
 		return err
 	}
+
+	//if err := output.NewJSONWriter(scrapers).Write(); err != nil {
+	//	return err
+	//}
 
 	//if err := output.NewS3Writer(scrapers).Write(); err != nil {
 	//	return err
