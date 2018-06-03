@@ -7,7 +7,8 @@ import (
 )
 
 func main() {
-	scrapers := []scraper.Scraper{scraper.NewNCIX(true), scraper.NewMegabuyau(true), scraper.NewUmart(true)}
+	//scrapers := []scraper.Scraper{scraper.NewNCIX(true), scraper.NewMegabuyau(true), scraper.NewUmart(true)}
+	scrapers := []scraper.Scraper{scraper.NewNCIX(true)}
 	if err := run(scrapers...); err != nil {
 		logrus.Error(err)
 	}

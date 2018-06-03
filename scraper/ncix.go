@@ -88,7 +88,6 @@ func (n *ncix) fetchProducts() error {
 				n.addProduct(p)
 			}
 		})
-
 		// test mode checking
 		if n.testMode && len(n.products) > 0 {
 			break

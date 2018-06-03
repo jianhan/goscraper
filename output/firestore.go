@@ -5,8 +5,9 @@ import (
 
 	"github.com/jianhan/goscraper/scraper"
 
+	"cloud.google.com/go/firestore"
 	"firebase.google.com/go"
-	"github.com/davecgh/go-spew/spew"
+	"github.com/fatih/structs"
 	"github.com/satori/go.uuid"
 	"golang.org/x/net/context"
 	"google.golang.org/api/iterator"
@@ -41,7 +42,7 @@ func (f *firestoreWriter) Write() error {
 	defer client.Close()
 
 	// load all products
-	productsMap := map[string]string{}
+	productsMap := map[string]*firestore.DocumentRef{}
 	products := client.Collection("products").Documents(ctx)
 	for {
 		doc, err := products.Next()
@@ -51,7 +52,7 @@ func (f *firestoreWriter) Write() error {
 		if err != nil {
 			return err
 		}
-		productsMap[doc.Data()["URL"].(string)] = doc.Ref.ID
+		productsMap[doc.Data()["URL"].(string)] = doc.Ref
 	}
 
 	// Get a new write batch.
@@ -63,24 +64,23 @@ func (f *firestoreWriter) Write() error {
 		}
 		for _, p := range s.Products() {
 			var id string
-			if productsMap[p.URL] != "" {
+			if productsMap[p.URL] != nil {
 				// exists
-				id = productsMap[p.URL]
+				id = productsMap[p.URL].ID
 			} else {
 				// not exists
 				id = uuid.Must(uuid.NewV4()).String()
-
 			}
 			sfRef := client.Collection("products").Doc(id)
-			batch.Set(sfRef, p)
+			batch.Set(sfRef, structs.Map(p), firestore.MergeAll)
 		}
 	}
 
 	// Commit the batch.
-	r, err := batch.Commit(ctx)
+	_, err = batch.Commit(ctx)
 	if err != nil {
 		return err
 	}
-	spew.Dump(r)
+
 	return nil
 }
